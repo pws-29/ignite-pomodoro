@@ -37,7 +37,7 @@ export function Home() {
    * 
    * zod: biblioteca de validação
    */
-  const { register, handleSubmit, watch } = useForm<NewCycleFormData>({
+  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
       task: '',
@@ -46,9 +46,9 @@ export function Home() {
   });
 
   function handleCreateNewCycle(data: NewCycleFormData) {
-    console.log(data)
+    console.log(data);
+    reset();
   }
-
 
   // Transforma o input task em um campo controlado. Renderiza sempre que alterado
   const task = watch('task');
