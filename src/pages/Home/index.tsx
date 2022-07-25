@@ -16,8 +16,14 @@ import {
 // validando um objeto
 const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
-  minutesAmount: zod.number().min(5).max(60),
+  minutesAmount: zod
+    .number()
+    .min(5, 'O ciclo precisa ser de no mínimo 5 minutos.')
+    .max(60, 'O ciclo precisa ser de no máximo 60 minutos.'),
 });
+
+// zod possui função para extrair a tipagem do formulário de dentro do schema de validação. tipagem a partir de referência
+type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function Home() {
   /**
@@ -25,17 +31,26 @@ export function Home() {
    * Spread operator transforma cada um dos métodos do retorno em uma propriedade para o input;
    * 
    * handleSubmit(): recebe os dados do formulário quando a validação for bem sucedida;
+   * Aceita resolver, que que permite o uso de bibliotecas externas para validação de dados; 
    * 
-   * watch(): assite input específico e retorna seu valor. ütil para renderizar input value e determinar o que rendezrizar por condição;
+   * watch(): assiste input específico e retorna seu valor. ütil para renderizar input value e determinar o que rendezrizar por condição;
+   * 
+   * zod: biblioteca de validação
    */
-  const { register, handleSubmit, watch } = useForm({
+  const { register, handleSubmit, watch } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
+    defaultValues: {
+      task: '',
+      minutesAmount: 0,
+    }
   });
 
-  function handleCreateNewCycle(data: any) {
+  function handleCreateNewCycle(data: NewCycleFormData) {
     console.log(data)
   }
 
+
+  // Transforma o input task em um campo controlado. Renderiza sempre que alterado
   const task = watch('task');
   const isSubmitDisabled = !task;
 
