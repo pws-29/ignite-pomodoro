@@ -2,8 +2,9 @@ import { Play } from "phosphor-react";
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod' // nao possui export default
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
+import { differenceInSeconds } from 'date-fns'
 
 import {
   HomeContainer,
@@ -32,6 +33,7 @@ interface Cycle {
   id: string;
   task: string;
   minutesAmount: number;
+  startDate: Date;
 }
 
 export function Home() {
@@ -59,6 +61,19 @@ export function Home() {
     }
   });
 
+  const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
+
+  useEffect(() => {
+    if (activeCycle) {
+      // setInterval pode não ser preciso, poode ser uma estimativa do tempo.
+      setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate),
+        )
+      }, 1000)
+    }
+  }, [activeCycle])
+
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = uuidv4();
 
@@ -66,6 +81,7 @@ export function Home() {
       id,
       task: data.task,
       minutesAmount: data.minutesAmount,
+      startDate: new Date(),
     }
 
     setCycles(prevState => [...prevState, newCycle]);
@@ -73,8 +89,6 @@ export function Home() {
 
     reset();
   }
-
-  const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
