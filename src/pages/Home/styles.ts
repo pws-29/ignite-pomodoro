@@ -86,7 +86,7 @@ display: flex;
 justify-content: center;
 `
 
-export const StartCountButton = styled.button`
+export const BaseCountButton = styled.button`
 width: 100%;
 border: 0;
 padding: 1rem;
@@ -99,18 +99,30 @@ gap: 0.5rem;
 
 font-weight: bold;
 
-cursor: pointer;
-
-background: ${props => props.theme["green-500"]};
 color: ${props => props.theme["gray-100"]};
-transition: 0.2s;
+
+cursor: pointer;
 
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
   }
+`
+
+export const StartCountButton = styled(BaseCountButton)`
+  background: ${props => props.theme["green-500"]};
+  transition: 0.2s;
 
   &:not(:disabled):hover {
     background: ${props => props.theme["green-700"]};
   }
-` 
+`
+
+export const StopCountButton = styled(BaseCountButton)`
+  background: ${props => props.theme["red-500"]};
+  transition: 0.2s;
+
+  &:not(:disabled):hover {
+    background: ${props => props.theme["red-700"]};
+  }
+`
