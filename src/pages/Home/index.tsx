@@ -63,14 +63,23 @@ export function Home() {
 
   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
+  // useEffect é executado assim que o ciclo é iniciado;
+  // Se não usarmos return, cada vez que o ciclo é executado, um novo intervalo é criado em cima do outro, somando os segundos;
+  // O retorno limpa o intervalo ao iniciar outro ciclo;
   useEffect(() => {
+    let interval: number;
+
     if (activeCycle) {
       // setInterval pode não ser preciso, poode ser uma estimativa do tempo.
-      setInterval(() => {
+      interval = setInterval(() => {
         setAmountSecondsPassed(
           differenceInSeconds(new Date(), activeCycle.startDate),
         )
       }, 1000)
+    }
+
+    return () => {
+      clearInterval(interval)
     }
   }, [activeCycle])
 
