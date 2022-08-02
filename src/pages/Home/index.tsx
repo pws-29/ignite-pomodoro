@@ -53,6 +53,7 @@ export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+  const [documentIsVisible, setDocumentIsVisible] = useState('');
 
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -111,11 +112,18 @@ export function Home() {
   const minutes = String(minutesAmount).padStart(2, '0');
   const seconds = String(secondsAmount).padStart(2, '0');
 
+  document.addEventListener('visibilitychange', () => {
+    const visibility = document.visibilityState;
+    setDocumentIsVisible(visibility)
+  })
+
   useEffect(() => {
-    if (activeCycle) {
+    if (activeCycle && documentIsVisible === 'hidden') {
       document.title = `${minutes}:${seconds}`;
+    } else {
+      document.title = "Ignite Timer"
     }
-  }, [minutes, seconds, activeCycle])
+  }, [minutes, seconds, activeCycle, documentIsVisible])
 
   // Transforma o input task em um campo controlado. Renderiza sempre que alterado
   const task = watch('task');
