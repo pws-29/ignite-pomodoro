@@ -95,6 +95,8 @@ export function Home() {
 
     setCycles(prevState => [...prevState, newCycle]);
     setActiveCycleId(id);
+    // Resetar os segundos que passaram para 0. Novo ciclo iniciar correto
+    setAmountSecondsPassed(0);
 
     reset();
   }
