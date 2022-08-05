@@ -136,7 +136,7 @@ export function Home() {
 
   useEffect(() => {
     if (activeCycle && documentIsVisible === 'hidden') {
-      document.title = `${minutes}:${seconds}`;
+      document.title = `Ignite Timer: ${minutes}:${seconds}`;
     } else {
       document.title = "Ignite Timer"
     }
