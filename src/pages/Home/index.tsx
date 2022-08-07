@@ -36,6 +36,7 @@ interface Cycle {
   minutesAmount: number;
   startDate: Date;
   interruptedDate?: Date;
+  finishedDate?: Date;
 }
 
 export function Home() {
@@ -66,6 +67,9 @@ export function Home() {
 
   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
+  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
+
+
   // useEffect é executado assim que o ciclo é iniciado;
   // Se não usarmos return, cada vez que o ciclo é executado, um novo intervalo é criado em cima do outro, somando os segundos;
   // O retorno limpa o intervalo ao iniciar outro ciclo;
@@ -75,16 +79,34 @@ export function Home() {
     if (activeCycle) {
       // setInterval pode não ser preciso, poode ser uma estimativa do tempo.
       interval = setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeCycle.startDate),
-        )
+        const secondsDifference = differenceInSeconds(
+          new Date(),
+          activeCycle.startDate
+        );
+
+        // ciclo encerrado
+        if (secondsDifference >= totalSeconds) {
+          setCycles(cycles.map(cycle => {
+            if (cycle.id === activeCycleId) {
+              return {
+                ...cycle,
+                finishedDate: new Date(),
+              }
+            } else {
+              return cycle;
+            }
+          }),
+          )
+        } else {
+          setAmountSecondsPassed(secondsDifference);
+        }
       }, 1000)
     }
 
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle])
+  }, [activeCycle, totalSeconds, activeCycleId])
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = uuidv4();
@@ -120,7 +142,6 @@ export function Home() {
     setActiveCycleId(null);
   }
 
-  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
 
   const minutesAmount = Math.floor(currentSeconds / 60)
