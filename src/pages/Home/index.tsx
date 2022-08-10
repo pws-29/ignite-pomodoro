@@ -1,8 +1,5 @@
 import { HandPalm, Play } from "phosphor-react";
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as zod from 'zod' // nao possui export default
-import { useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { differenceInSeconds } from 'date-fns'
 
@@ -16,17 +13,7 @@ import { NewCycleForm } from "./components/NewCycleForm";
 import { Countdown } from "./components/Countdown";
 
 
-// validando um objeto
-const newCycleFormValidationSchema = zod.object({
-  task: zod.string().min(1, 'Informe a tarefa'),
-  minutesAmount: zod
-    .number()
-    .min(5, 'O ciclo precisa ser de no mínimo 5 minutos.')
-    .max(60, 'O ciclo precisa ser de no máximo 60 minutos.'),
-});
 
-// zod possui função para extrair a tipagem do formulário de dentro do schema de validação. tipagem a partir de referência
-type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 interface Cycle {
   id: string;
@@ -36,6 +23,14 @@ interface Cycle {
   interruptedDate?: Date;
   finishedDate?: Date;
 }
+
+interface CyclesContextType {
+  activeCycle: Cycle | undefined;
+  activeCycleId: string | null;
+  markCurrentCycleAsFinished: () => void;
+}
+
+export const CyclesContext = createContext({} as CyclesContextType);
 
 export function Home() {
   /**
@@ -52,80 +47,39 @@ export function Home() {
 
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
-  const [documentIsVisible, setDocumentIsVisible] = useState('');
-
-  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
-    resolver: zodResolver(newCycleFormValidationSchema),
-    defaultValues: {
-      task: '',
-      minutesAmount: 5,
-    }
-  });
 
   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
-  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
-
-
-  // useEffect é executado assim que o ciclo é iniciado;
-  // Se não usarmos return, cada vez que o ciclo é executado, um novo intervalo é criado em cima do outro, somando os segundos;
-  // O retorno limpa o intervalo ao iniciar outro ciclo;
-  useEffect(() => {
-    let interval: number;
-
-    if (activeCycle) {
-      // setInterval pode não ser preciso, poode ser uma estimativa do tempo.
-      interval = setInterval(() => {
-        const secondsDifference = differenceInSeconds(
-          new Date(),
-          activeCycle.startDate
-        );
-
-        // ciclo encerrado
-        if (secondsDifference >= totalSeconds) {
-          setCycles(prevState =>
-            prevState.map(cycle => {
-              if (cycle.id === activeCycleId) {
-                return { ...cycle, finishedDate: new Date() }
-              } else {
-                return cycle;
-              }
-            }),
-          )
-
-          // novo cálculo de diferença é igual, não é mais atualizado o que passou, deixando 1s no painel
-          setAmountSecondsPassed(totalSeconds)
-
-          clearInterval(interval);
+  // Não passar o setCycles para o contexto, devido sua tipagem
+  function markCurrentCycleAsFinished() {
+    setCycles(prevState =>
+      prevState.map(cycle => {
+        if (cycle.id === activeCycleId) {
+          return { ...cycle, finishedDate: new Date() }
         } else {
-          setAmountSecondsPassed(secondsDifference);
+          return cycle;
         }
-      }, 1000)
-    }
-
-    return () => {
-      clearInterval(interval)
-    }
-  }, [activeCycle, totalSeconds, activeCycleId])
-
-  function handleCreateNewCycle(data: NewCycleFormData) {
-    const id = uuidv4();
-
-    const newCycle: Cycle = {
-      id,
-      task: data.task,
-      minutesAmount: data.minutesAmount,
-      startDate: new Date(),
-    }
-
-    setCycles(prevState => [...prevState, newCycle]);
-    setActiveCycleId(id);
-    // Resetar os segundos que passaram para 0. Novo ciclo iniciar correto
-    setAmountSecondsPassed(0);
-
-    reset();
+      }),
+    )
   }
+
+  // function handleCreateNewCycle(data: NewCycleFormData) {
+  //   const id = uuidv4();
+
+  //   const newCycle: Cycle = {
+  //     id,
+  //     task: data.task,
+  //     minutesAmount: data.minutesAmount,
+  //     startDate: new Date(),
+  //   }
+
+  //   setCycles(prevState => [...prevState, newCycle]);
+  //   setActiveCycleId(id);
+  //   // Resetar os segundos que passaram para 0. Novo ciclo iniciar correto
+  //   setAmountSecondsPassed(0);
+
+  //   reset();
+  // }
 
   function handleInterruptCycle() {
     // TODO: entender fluxo 
@@ -141,36 +95,19 @@ export function Home() {
     setActiveCycleId(null);
   }
 
-  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
-
-  const minutesAmount = Math.floor(currentSeconds / 60)
-  const secondsAmount = currentSeconds % 60;
-
-  const minutes = String(minutesAmount).padStart(2, '0');
-  const seconds = String(secondsAmount).padStart(2, '0');
-
-  document.addEventListener('visibilitychange', () => {
-    const visibility = document.visibilityState;
-    setDocumentIsVisible(visibility)
-  })
-
-  useEffect(() => {
-    if (activeCycle && documentIsVisible === 'hidden') {
-      document.title = `Ignite Timer: ${minutes}:${seconds}`;
-    } else {
-      document.title = "Ignite Timer"
-    }
-  }, [minutes, seconds, activeCycle, documentIsVisible])
 
   // Transforma o input task em um campo controlado. Renderiza sempre que alterado
-  const task = watch('task');
-  const isSubmitDisabled = !task;
+  // const task = watch('task');
+  // const isSubmitDisabled = !task;
 
   return (
     <HomeContainer>
-      <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
-        <NewCycleForm />
-        <Countdown />
+      <form /*onSubmit={handleSubmit(handleCreateNewCycle)}*/ action="">
+
+        <CyclesContext.Provider value={{ activeCycle, activeCycleId, markCurrentCycleAsFinished }}>
+          {/* <NewCycleForm /> */}
+          <Countdown />
+        </CyclesContext.Provider>
 
         {activeCycle ? (
           <StopCountButton onClick={handleInterruptCycle} type="button">
@@ -178,7 +115,7 @@ export function Home() {
             Interromper
           </StopCountButton>
         ) : (
-          <StartCountButton disabled={isSubmitDisabled} type="submit">
+          <StartCountButton /*disabled={isSubmitDisabled}*/ type="submit">
             <Play size={24} />
             Começar
           </StartCountButton>
