@@ -48,6 +48,15 @@ export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
 
+  const newCycleForm = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormValidationSchema),
+    defaultValues: {
+      task: '',
+      minutesAmount: 5,
+    }
+  });
+
+  const { handleSubmit, watch, reset } = newCycleForm
   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
   // Não passar o setCycles para o contexto, devido sua tipagem
@@ -105,7 +114,9 @@ export function Home() {
       <form /*onSubmit={handleSubmit(handleCreateNewCycle)}*/ action="">
 
         <CyclesContext.Provider value={{ activeCycle, activeCycleId, markCurrentCycleAsFinished }}>
-          {/* <NewCycleForm /> */}
+          <FormProvider {...newCycleForm}>
+            <NewCycleForm />
+          </FormProvider>
           <Countdown />
         </CyclesContext.Provider>
 
