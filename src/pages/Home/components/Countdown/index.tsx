@@ -38,7 +38,7 @@ export function Countdown() {
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle, totalSeconds, activeCycleId, markCurrentCycleAsFinished])
+  }, [activeCycle, totalSeconds, activeCycleId, markCurrentCycleAsFinished, setSecondsPassed])
 
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
 
@@ -54,12 +54,12 @@ export function Countdown() {
   })
 
   useEffect(() => {
-    if (activeCycle && documentIsVisible === 'hidden') {
+    if (activeCycle && documentIsVisible === 'hidden' && !activeCycle.finishedDate) {
       document.title = `Ignite Timer: ${minutes}:${seconds}`;
     } else {
       document.title = "Ignite Timer"
     }
-  }, [minutes, seconds, activeCycle, documentIsVisible, setSecondsPassed])
+  }, [minutes, seconds, activeCycle, documentIsVisible])
 
   return (
     <CountdownContainer>
