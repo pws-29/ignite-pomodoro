@@ -3,9 +3,10 @@ import {
   MinutesAmoutInput,
   TaskInput
 } from "./styles"
+
 import { useContext } from "react";
-import { CyclesContext } from "../..";
 import { useFormContext } from "react-hook-form";
+import { CyclesContext } from "../../../../contexts/CyclesContext";
 
 export function NewCycleForm() {
   const { activeCycle } = useContext(CyclesContext)
@@ -18,6 +19,7 @@ export function NewCycleForm() {
         id="task"
         placeholder="Dê um nome para o seu projeto"
         list="task-suggestions"
+        disabled={!!activeCycle}
         {...register('task')}
       />
       <datalist id="task-suggestions">
