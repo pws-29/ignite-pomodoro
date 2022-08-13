@@ -53,7 +53,14 @@ export function Home() {
     }
   });
 
-  const { handleSubmit, watch, /*reset*/ } = newCycleForm
+  const { handleSubmit, watch, reset } = newCycleForm
+
+  // Não queremos nada do react-hook-form dentro do contexto, por isso separamos o reset e criamos uma nova função
+  function handleCreateNewCycle(data: NewCycleFormData) {
+    createNewCycle(data);
+
+    reset();
+  }
 
   // Transforma o input task em um campo controlado. Renderiza sempre que alterado
   const task = watch('task');
@@ -61,7 +68,7 @@ export function Home() {
 
   return (
     <HomeContainer>
-      <form onSubmit={handleSubmit(createNewCycle)} action="">
+      <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
 
         <FormProvider {...newCycleForm}>
           <NewCycleForm />
