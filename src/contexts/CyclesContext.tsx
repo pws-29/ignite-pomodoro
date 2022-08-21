@@ -2,6 +2,7 @@ import { createContext, useState, useReducer, useEffect } from "react";
 import { Cycle, cyclesReducer } from '../reducers/cycles/reducer'
 import { v4 as uuidv4 } from 'uuid';
 import { addNewCycleAction, interruptCurrentCycleAction, markCurrentCycleAsFinishedAction } from "../reducers/cycles/actions";
+import { differenceInSeconds } from "date-fns";
 
 interface CreateCycleData {
   task: string;
@@ -38,16 +39,22 @@ export function CyclesContextProvider({ children }: CyclesContextProviderProps) 
     }
   })
 
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+  const { cycles, activeCycleId } = cyclesState;
+  const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
+
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(() => {
+    if (activeCycle) {
+      return differenceInSeconds(new Date(), new Date(activeCycle.startDate))
+    }
+
+    return 0
+  });
 
   useEffect(() => {
     const stateJSON = JSON.stringify(cyclesState);
 
     localStorage.setItem('@ignite-timer:cycles-state-1.0.0', stateJSON);
   }, [cyclesState])
-
-  const { cycles, activeCycleId } = cyclesState;
-  const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
   // Não passar o setCycles para o contexto, devido sua tipagem
   function setSecondsPassed(seconds: number) {
