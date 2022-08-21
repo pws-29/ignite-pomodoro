@@ -1,4 +1,4 @@
-import { createContext, useState, useReducer } from "react";
+import { createContext, useState, useReducer, useEffect } from "react";
 import { Cycle, cyclesReducer } from '../reducers/cycles/reducer'
 import { v4 as uuidv4 } from 'uuid';
 import { addNewCycleAction, interruptCurrentCycleAction, markCurrentCycleAsFinishedAction } from "../reducers/cycles/actions";
@@ -27,9 +27,24 @@ interface CyclesContextProviderProps {
 
 // Valor dos ciclos e valor do ciclo ativo são controlados por um único reducer. Informações correlacionadas.
 export function CyclesContextProvider({ children }: CyclesContextProviderProps) {
-  const [cyclesState, dispatch] = useReducer(cyclesReducer, { cycles: [], activeCycleId: null })
+  const [cyclesState, dispatch] = useReducer(cyclesReducer, {
+    cycles: [],
+    activeCycleId: null,
+  }, () => {
+    const storedStateAsJson = localStorage.getItem('@ignite-timer:cycles-state-1.0.0');
+
+    if (storedStateAsJson) {
+      return JSON.parse(storedStateAsJson);
+    }
+  })
 
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+
+  useEffect(() => {
+    const stateJSON = JSON.stringify(cyclesState);
+
+    localStorage.setItem('@ignite-timer:cycles-state-1.0.0', stateJSON);
+  }, [cyclesState])
 
   const { cycles, activeCycleId } = cyclesState;
   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
