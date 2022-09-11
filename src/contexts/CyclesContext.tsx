@@ -27,6 +27,7 @@ interface CyclesContextProviderProps {
 }
 
 // Valor dos ciclos e valor do ciclo ativo são controlados por um único reducer. Informações correlacionadas.
+// TODO: https://app.rocketseat.com.br/h/forum/react-js/fc909211-8a4c-4edf-9a0b-d8f0100c2fac
 export function CyclesContextProvider({ children }: CyclesContextProviderProps) {
   const [cyclesState, dispatch] = useReducer(cyclesReducer, {
     cycles: [],
@@ -37,7 +38,13 @@ export function CyclesContextProvider({ children }: CyclesContextProviderProps) 
     if (storedStateAsJson) {
       return JSON.parse(storedStateAsJson);
     }
-  })
+
+    return {
+      cycles: [],
+      activeCycleId: null,
+    }
+  },
+  )
 
   const { cycles, activeCycleId } = cyclesState;
   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
